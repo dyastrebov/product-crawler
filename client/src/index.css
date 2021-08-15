@@ -1,0 +1,85 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 20px;
+}
+
+.tabs {
+    margin-bottom: 15px;
+}
+.tabs > span {
+    display: inline-block;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+    border-style: solid;
+    border-width: 2px;
+    border-color: lightgray;
+    padding: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.tabs > span.selected {
+    border-color: black;
+    background: lightgray;
+}
+
+table {
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+th,
+td {
+    text-align: left;
+    border: 1px solid grey;
+    padding: 5px;
+}
+
+th {
+    background: lightgrey;
+}
+
+tr:nth-child(even) {
+    background: rgb(236, 236, 236);
+}
+
+.modal {
+    position: fixed;
+    z-index: 100;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.modal > div {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    right: 40px;
+    bottom: 40px;
+    padding: 20px;
+    border: 1px solid grey;
+    overflow: auto;
+    box-shadow: 0px 0px 15px 15px rgba(0, 0, 0, 0.33);
+    background: white;
+}
+
+.right {
+    float: right;
+}
+
+img.preview {
+    height: 200px;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+}
+.row > .preview {
+    width: 250px;
+}
+
+.row pre.specs {
+    margin: 13px;
+}

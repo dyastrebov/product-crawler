@@ -1,0 +1,11 @@
+build/
+client/build/
+node_modules/
+client/node_modules/
+
+# eslint, prettier and NPM config files
+.eslintrc.json
+package-lock.json
+package.json
+yarn.lock
+tsconfig.json

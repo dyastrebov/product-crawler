@@ -1,0 +1,43 @@
+{
+  "name": "template",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.9",
+    "@types/react-linkify": "^1.0.1",
+    "@types/react-redux": "^7.1.16",
+    "@typescript-eslint/eslint-plugin": "^4.28.1",
+    "@typescript-eslint/parser": "^4.28.1",
+    "eslint": "^7.29.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-react": "^7.24.0",
+    "node-sass": "^5.0.0",
+    "npm-watch": "^0.10.0"
+  },
+  "dependencies": {
+    "eslint-config-prettier": "^8.3.0",
+    "react-linkify": "^1.0.0-alpha"
+  }
+}

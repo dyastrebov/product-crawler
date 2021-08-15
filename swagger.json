@@ -1,0 +1,309 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample product crawler service.",
+        "version": "0.0.1",
+        "title": "Product Crawler Service",
+        "contact": {
+            "email": "dyastrebov@gmail.com"
+        }
+    },
+    "host": "localhost:5677",
+    "basePath": "/",
+    "tags": [
+        {
+            "name": "jobs",
+            "description": "Read and manipulate Manufacturer (jobs) list. Each job represents a manufacturer site from which the data are loaded "
+        },
+        {
+            "name": "products",
+            "description": "Access to the crawled product list"
+        }
+    ],
+    "schemes": ["http"],
+    "paths": {
+        "/jobs": {
+            "get": {
+                "tags": ["jobs"],
+                "summary": "Manufacturer (job) list",
+                "description": "Get the list of the registered jobs (manufacturers) and their statuses",
+                "produces": ["application/json"],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Job"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/{jobName}/log": {
+            "get": {
+                "tags": ["jobs"],
+                "summary": "Get Job log",
+                "description": "Reads the current (latest) job log available",
+                "parameters": [
+                    {
+                        "name": "jobName",
+                        "in": "path",
+                        "description": "The name of the job to retrieve the log for",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": ["text/plain"],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "type": "string",
+                            "example": "Fetching records...\nDone."
+                        }
+                    },
+                    "404": {
+                        "description": "Not job with this name found.",
+                        "schema": {
+                            "type": "string",
+                            "example": "No job with name '{jobName}'"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/{jobName}/start": {
+            "post": {
+                "tags": ["jobs"],
+                "summary": "Start the job",
+                "description": "Runs the job if it's not started. Does nothing if it's already running",
+                "parameters": [
+                    {
+                        "name": "jobName",
+                        "in": "path",
+                        "description": "The name of the job to run",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": ["text/plain"],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "type": "string",
+                            "example": "Ok"
+                        }
+                    },
+                    "404": {
+                        "description": "Not job with this name found.",
+                        "schema": {
+                            "type": "string",
+                            "example": "No job with name '{jobName}'"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/{jobName}/stop": {
+            "post": {
+                "tags": ["jobs"],
+                "summary": "Stop the job",
+                "description": "Cancels the job if it's running. Does nothing if it's already stopped",
+                "parameters": [
+                    {
+                        "name": "jobName",
+                        "in": "path",
+                        "description": "The name of the job to stop",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": ["text/plain"],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "type": "string",
+                            "example": "Ok"
+                        }
+                    },
+                    "404": {
+                        "description": "Not job with this name found.",
+                        "schema": {
+                            "type": "string",
+                            "example": "No job with name '{jobName}'"
+                        }
+                    }
+                }
+            }
+        },
+        "/products": {
+            "get": {
+                "tags": ["products"],
+                "summary": "Get (filter) products",
+                "description": "Retrieve the list of products (complete or partial)",
+                "parameters": [
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "A list of key-value pairs to filter for, serialized in JSON format. Each 'key' represents a product field, echa value - the argument for SQL 'like' operator. Conditions for all defined fields are 'AND'-ed together. See 'Product' object description for the list of supported fields ",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "cols",
+                        "in": "query",
+                        "description": "A comma-separated list of field names to return. If this parameter is omitted, all fields are returned. See 'Product' object description for the list of supported fields.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "orderBy",
+                        "in": "query",
+                        "description": "A comma-separated list for 'order by' clause. To make it descending, add ' desc' to the field name (for example: 'crawler,name desc'. See 'Product' object description for the list of supported fields.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "start",
+                        "in": "query",
+                        "description": "Which row number to start from. If omitted, all rows are returned. Can only be used if 'limit' is also set.",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Limits the number of rows returned. If omitted, all rows are returned. Can only be used if 'start' is also set.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "produces": ["application/json"],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Product"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid arguments.",
+                        "schema": {
+                            "type": "string",
+                            "example": "Error: Invalid query column name"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{rowid}": {
+            "get": {
+                "tags": ["products"],
+                "summary": "Crawl detailed information for a product",
+                "description": "Get detailed product information by accessing the soure in real-time",
+                "parameters": [
+                    {
+                        "name": "rowid",
+                        "in": "path",
+                        "description": "ID of the record to retrieve the data for",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": ["application/json"],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "images": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "array of URLs (or data-urls, depending on the implementation) of the available product images"
+                                },
+                                "info": {
+                                    "type": "object",
+                                    "description": "Product details. The structure is source-dependant and includes a set of key-value pairs with product characteristics"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "Failed to fetch data because of a problem on the crawler side (e.g. the original item no longer exists, or the source is currently inaccessible).",
+                        "schema": {
+                            "type": "string",
+                            "example": "Failed to fetch data from the source"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Job": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "job (manufacturer) name"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Source description"
+                },
+                "at": {
+                    "type": "string",
+                    "description": "job schedule in 'cron' format"
+                },
+                "status": {
+                    "type": "string",
+                    "description": "current job state",
+                    "enum": ["idle", "running"]
+                }
+            }
+        },
+        "Product": {
+            "type": "object",
+            "properties": {
+                "rowid": {
+                    "type": "string",
+                    "description": "Unique record ID. Note: thi is NOT returned by default, unless 'rowid' is listed in 'cols' argument explicitly (see '/products' for more details"
+                },
+                "crawler": {
+                    "type": "string",
+                    "description": "The name of the job which found this product"
+                },
+                "category": {
+                    "type": "string",
+                    "description": "Product category"
+                },
+                "sub_category": {
+                    "type": "string",
+                    "description": "Product sub-category (model)"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Product name (unique for the manufacturer"
+                },
+                "info": {
+                    "type": "string",
+                    "description": "Basic product info serialized in JSON format"
+                },
+                "last_seen": {
+                    "type": "number",
+                    "description": "Timestamp (UNIX seconds) when the product was last observed"
+                }
+            }
+        }
+    }
+}
