@@ -1,0 +1,21 @@
+version: '3.9'
+services:
+    product-crawler:
+        build: .
+        ports:
+            - '5677:5677'
+        depends_on:
+            - product-crawler-db
+        environment:
+            PG_HOST: product-crawler-db
+    product-crawler-db:
+        image: 'postgres:13.3'
+        ports:
+            - '5432:5432'
+        volumes:
+            - product-crawler-db:/var/lib/postgresql/data
+        environment:
+            POSTGRES_PASSWORD: postgres
+
+volumes:
+    product-crawler-db:

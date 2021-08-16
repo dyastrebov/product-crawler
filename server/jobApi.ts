@@ -20,7 +20,7 @@ for (const name in config) {
 
 // if this is an empty (new) database, run all jobs immediately
 (async () => {
-    let isNew = await dal.init();
+    const isNew = await dal.init();
     if (isNew) {
         for (const name in scheduler.jobs) {
             scheduler.jobs[name].run();
@@ -48,7 +48,7 @@ jobApi.get('/', (req, res) => {
 });
 
 /**
- * Start/stop a job (middleware generator) 
+ * Start/stop a job (middleware generator)
  */
 function jobAction(action: 'run' | 'stop', req: Request, res: Response) {
     const job = scheduler.jobs[req.params.jobName];

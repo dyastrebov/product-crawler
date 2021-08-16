@@ -14,17 +14,17 @@ productApi.get('/', async (req, res) => {
     } catch (err) {
         return res.status(400).send(err.toString());
     }
-    let orderBy =
+    const orderBy =
         (req.query.orderBy && String(req.query.orderBy).split(/ *, */)) ||
         undefined;
-    let page =
+    const page =
         req.query.start && req.query.limit
             ? { start: Number(req.query.start), limit: Number(req.query.limit) }
             : undefined;
-    let cols = req.query.cols && String(req.query.cols).split(',');
+    const cols = req.query.cols && String(req.query.cols).split(',');
 
     try {
-        let data = await dal.products.select(
+        const data = await dal.products.select(
             cols || '*',
             filter,
             orderBy,
@@ -36,18 +36,18 @@ productApi.get('/', async (req, res) => {
     }
 });
 
-let modules: { [name: string]: any } = {};
+const modules: { [name: string]: any } = {};
 
 /**
  * Get product details
  */
 productApi.get('/:rowid', async (req, res) => {
-    let item = await dal.products.get(req.params.rowid);
+    const item = await dal.products.get(Number(req.params.rowid));
     if (!item) {
         return res.status(404).send('Not found');
     }
 
-    let modConf = config[item.crawler];
+    const modConf = config[item.crawler];
     if (!modConf) {
         console.error(
             `Unknown crawler name '${item.crawler}' faced in the product rowid='${req.params.rowid}'`

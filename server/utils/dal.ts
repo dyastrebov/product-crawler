@@ -1,16 +1,12 @@
 /**
- * Database abstraction layer. It is assumed that no SQL code can appear outside 
+ * Database abstraction layer. It is assumed that no SQL code can appear outside
  * of this module. The module should also provide convenient factories for building
- * APIs for endpoints 
+ * APIs for endpoints
  */
-import sqlite3 from 'sqlite3';
-import sqlite, { open } from 'sqlite';
+import { Pool } from 'pg';
 import fs from 'fs';
 
-const dbPath = __dirname + '/../db';
-const dbName = dbPath + '/products.sqlite';
-
-type DB = sqlite.Database<sqlite3.Database, sqlite3.Statement>;
+type DB = Pool;
 
 let db: DB = null as unknown as DB; // avoid 'db may be null' warnings
 let isNew = false;
@@ -18,13 +14,13 @@ let isNew = false;
 export type Filter = { [name: string]: any };
 
 class Query {
-    args: { [id: string]: any } = {};
-    lastArgId: number = 0;
+    args: Array<any> = [];
+    lastArgId = 1;
 }
 
 /**
  * Generates API to access a amed table
- * 
+ *
  * @param tableName - table to generate the bindings for
  * @param columns - known (allowed) table columns
  * @returns API of 'get', 'select', 'insert', etc. statements
@@ -32,26 +28,25 @@ class Query {
 function tableApi(tableName: string, columns: Array<string>) {
     columns = ['rowid', ...columns];
     function getWhere(query: Query, filter: Filter) {
-        let values = Object.keys(filter)
+        const values = Object.keys(filter)
             .map((name) => {
                 if (columns.indexOf(name) < 0)
                     throw new Error(`Invalid query column name - '${name}'`);
-                let id = ':_val' + query.lastArgId;
-                query.lastArgId++;
-                query.args[id] = filter[name];
-                return `${name} like ${id}`;
+                query.args.push(filter[name]);
+                return `${name} ilike $${query.lastArgId++}`;
             })
             .join(' and ');
         return values ? ' where ' + values : '';
     }
 
     return {
-        get: async function (rowid: string) {
+        get: async function (rowid: number) {
             await DAL.init();
-            let res = await db.all(`select * from ${tableName} where rowid=?`, [
-                rowid,
-            ]);
-            return res[0];
+            const res = await db.query(
+                `select * from ${tableName} where rowid=$1`,
+                [rowid]
+            );
+            return res.rows[0];
         },
         select: async function (
             colList: Array<string> | '*',
@@ -99,24 +94,24 @@ function tableApi(tableName: string, columns: Array<string>) {
                 )}`;
             }
             //console.log(sql);
-            return db.all(sql, q.args);
+            return (await db.query(sql, q.args)).rows;
         },
 
         insert: async function (row: any) {
             await DAL.init();
-            let cols = Object.keys(row);
+            const cols = Object.keys(row);
 
             // check if all columns are legit
             const q = new Query();
             cols.forEach((col) => {
-                q.args[':' + col] = row[col];
                 if (columns.indexOf(col) < 0)
                     throw new Error(`Invalid query column name - '${col}'`);
+                q.args.push(row[col]);
             });
 
-            await db.run(
+            await db.query(
                 `insert into ${tableName}(${cols.join(',')}) values (${cols
-                    .map((col) => ':' + col)
+                    .map((col, idx) => '$' + (idx + 1))
                     .join(',')})`,
                 q.args
             );
@@ -126,7 +121,7 @@ function tableApi(tableName: string, columns: Array<string>) {
             await DAL.init();
 
             const q = new Query();
-            return db.run(
+            return db.query(
                 `DELETE from ${tableName} ${getWhere(q, filter)}`,
                 q.args
             );
@@ -138,18 +133,26 @@ const DAL = {
     init: async function (): Promise<boolean> {
         if (db) return isNew;
 
-        isNew = !fs.existsSync(dbName);
+        db = new Pool({
+            host: process.env['PG_HOST'] || 'localhost',
+            user: process.env['PG_USER'] || 'postgres',
+            password: process.env['PG_PASSWORD'] || 'postgres',
+            database: process.env['PG_DATABASE'] || 'postgres',
+        });
 
-        if (isNew && !fs.existsSync(dbPath)) {
-            fs.mkdirSync(dbPath);
-        }
-
-        db = await open({ filename: dbName, driver: sqlite3.Database });
-        db.configure('busyTimeout', 10000);
+        isNew = !(
+            await db.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE  table_schema = 'public'
+                AND    table_name   = 'products'
+            ) as exists;
+        `)
+        ).rows[0].exists;
 
         if (isNew) {
-            await db.exec(
-                'create table products(crawler text, category text, sub_category text, name text, info text, last_seen integer)'
+            await db.query(
+                'create table products(rowid serial primary key, crawler text, category text, sub_category text, name text, info text, last_seen integer)'
             );
         }
 

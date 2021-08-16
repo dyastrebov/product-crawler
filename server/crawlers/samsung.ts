@@ -113,12 +113,12 @@ async function crawl() {
 
 /**
  * Fetch item details. This function is called when coresponding Web API is called
- * 
+ *
  * @param item - item info (reference), as it was collected during the crawler execution
  * @returns - data in arbitrary format
  */
 export async function fetchDetails(item: Product) {
-    let info = JSON.parse(item.info);
+    const info = JSON.parse(item.info);
 
     let specs: any = {};
 
@@ -136,7 +136,7 @@ export async function fetchDetails(item: Product) {
     }
 
     if (info.linkUrl) {
-        let page = await fetchHtml(siteUrl + info.linkUrl);
+        const page = await fetchHtml(siteUrl + info.linkUrl);
         page.window.document
             .querySelectorAll('.sub-specs__item__name')
             .forEach((nameTag) => {

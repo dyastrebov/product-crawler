@@ -7,7 +7,7 @@ type ConfigItem = {
 
 /**
  * Crawler configuration (left in the code to be able to comment)
- * 
+ *
  * Each item is a reference to a crawler job. Multiple jobs may refer
  * same crawler module (e.g. with various parameters)
  */

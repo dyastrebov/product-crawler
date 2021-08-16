@@ -103,14 +103,14 @@ async function crawl() {
 
 /**
  * Fetch item details. This function is called when coresponding Web API is called
- * 
+ *
  * @param item - item info (reference), as it was collected during the crawler execution
  * @returns - data in arbitrary format
  */
 export async function fetchDetails(item: Product) {
-    let info = JSON.parse(item.info);
+    const info = JSON.parse(item.info);
 
-    let imgUrls = new Array<string>();
+    const imgUrls = new Array<string>();
     info.ImageList &&
         info.ImageList.forEach(
             (list: any) =>
@@ -126,7 +126,7 @@ export async function fetchDetails(item: Product) {
         ).window.document.body.textContent?.trim();
     }
 
-    let specs: any = {};
+    const specs: any = {};
     if (info.ProductURL) {
         const conf = info.isRogFlag
             ? {

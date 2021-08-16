@@ -276,8 +276,8 @@
             "type": "object",
             "properties": {
                 "rowid": {
-                    "type": "string",
-                    "description": "Unique record ID. Note: thi is NOT returned by default, unless 'rowid' is listed in 'cols' argument explicitly (see '/products' for more details"
+                    "type": "integer",
+                    "description": "Unique record ID."
                 },
                 "crawler": {
                     "type": "string",

@@ -30,18 +30,18 @@ export async function fetchJson(
 }
 
 export async function fetchImages(urls: Array<string>) {
-    let images = new Array<string>();
+    const images = new Array<string>();
     const encoding = 'base64';
 
     for (const url of urls) {
         const res = await fetch(url);
-        let mimeType = (res.headers.get('Content-Type') || '').replace(
+        const mimeType = (res.headers.get('Content-Type') || '').replace(
             /;.*$/,
             ''
         );
         if (!mimeType.startsWith('image/')) continue;
 
-        let data = await res.buffer();
+        const data = await res.buffer();
         images.push(
             'data:' + mimeType + ';' + encoding + ',' + data.toString(encoding)
         );

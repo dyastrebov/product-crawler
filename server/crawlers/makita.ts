@@ -7,7 +7,7 @@ const siteUrl = 'https://www.makitatools.com';
 async function crawl() {
     console.log('Reading category list...');
 
-    let page = await fetchHtml(siteUrl);
+    const page = await fetchHtml(siteUrl);
 
     type Category = { catName: string; subCatName: string; href: string };
 
@@ -42,11 +42,11 @@ async function crawl() {
         );
         if (!m) {
             const list = new JSDOM(wrapper);
-            let hrefs = new Array<string>();
+            const hrefs = new Array<string>();
             list.window.document
                 .querySelectorAll('.tile .title a.makita-link')
                 .forEach((el) => {
-                    let href = el.getAttribute('href');
+                    const href = el.getAttribute('href');
                     href && hrefs.push(href);
                 });
 
@@ -118,19 +118,19 @@ async function crawl() {
 
 /**
  * Fetch item details. This function is called when coresponding Web API is called
- * 
+ *
  * @param item - item info (reference), as it was collected during the crawler execution
  * @returns - data in arbitrary format
  */
 export async function fetchDetails(item: Product) {
-    let info = JSON.parse(item.info);
+    const info = JSON.parse(item.info);
     const page = await fetchHtml(siteUrl + info.href);
 
     const images = new Array<string>();
     page.window.document
         .querySelectorAll('.image-gallery img')
         .forEach((img) => {
-            let url = img.getAttribute('data-dyn-url');
+            const url = img.getAttribute('data-dyn-url');
             if (url) images.push(url);
         });
 

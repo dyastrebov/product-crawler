@@ -5,12 +5,12 @@
   "main": "index.js",
   "scripts": {
     "build": "npm run build --prefix=client && cd server && tsc",
-    "start": "node server/build",
-    "dev": "nodemon ./server/index.ts",
+    "start": "docker-compose -f docker-compose.dev.yml up -d && node server/build",
+    "dev": "docker-compose -f docker-compose.dev.yml up -d && nodemon ./server/index.ts",
     "lint": "eslint . --quiet --fix",
     "format": "prettier --write .",
-    "docker-build": "docker build -t product-crawler --network=host .",
-    "docker-start": "docker volume create product-crawler-db && docker run --rm -p 5677:5677 -v product-crawler-db:/app/server/build/db product-crawler"
+    "docker-build": "docker-compose build",
+    "docker-start": "docker-compose up"
   },
   "nodemonConfig": {
     "ignore": [
@@ -25,11 +25,10 @@
     "js-yaml": "^4.1.0",
     "jsdom": "^17.0.0",
     "node-fetch": "^2.6.1",
+    "pg": "^8.7.1",
     "react": "^17.0.2",
     "react-debounce-input": "^3.2.4",
     "react-dom": "^17.0.2",
-    "sqlite": "^4.0.23",
-    "sqlite3": "^5.0.2",
     "swagger-ui-express": "^4.1.6",
     "tree-kill": "^1.2.2"
   },
@@ -43,6 +42,7 @@
     "@types/jsdom": "^16.2.13",
     "@types/node": "^12.0.0",
     "@types/node-fetch": "^2.5.12",
+    "@types/pg": "^8.6.1",
     "@types/react": "^17.0.9",
     "@types/react-dom": "^17.0.0",
     "@types/react-redux": "^7.1.16",
