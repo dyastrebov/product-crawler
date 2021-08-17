@@ -30,7 +30,7 @@ productApi.get('/', async (req, res) => {
             orderBy,
             page
         );
-        res.json(data);
+        return res.json(data);
     } catch (err) {
         return res.status(400).send(err.toString());
     }
@@ -38,48 +38,70 @@ productApi.get('/', async (req, res) => {
 
 const modules: { [name: string]: any } = {};
 
+const requests: { [rowid: number]: Promise<any> } = {};
 /**
  * Get product details
  */
 productApi.get('/:rowid', async (req, res) => {
-    const item = await dal.products.get(Number(req.params.rowid));
-    if (!item) {
-        return res.status(404).send('Not found');
+    const rowid = Number(req.params.rowid);
+    if (isNaN(rowid)) {
+        return res.status(400).send('Wrong argument');
     }
 
-    const modConf = config[item.crawler];
-    if (!modConf) {
-        console.error(
-            `Unknown crawler name '${item.crawler}' faced in the product rowid='${req.params.rowid}'`
-        );
-        res.status(500).send('Server misconfiguraion');
-    }
-
-    let mod = modules[modConf.module];
-    if (!mod) {
-        try {
-            mod = modules[modConf.module] = require('./crawlers/' +
-                modConf.module);
-        } catch (err) {
-            console.error(
-                `Failed to initialize module '${modConf.module}'`,
-                err
-            );
-            res.status(500).send('Server misconfiguraion');
+    // Check if a request for the same item is already in-progress
+    // This allows to implement a sort of 'long-polling' - if the client
+    // connection breaks, resending same request will continue waiting for
+    // the data.
+    let fetcher = requests[rowid];
+    if (!fetcher) {
+        const item = await dal.products.get(Number(req.params.rowid));
+        if (!item) {
+            return res.status(404).send('Not found');
         }
+
+        const modConf = config[item.crawler];
+        if (!modConf) {
+            console.error(
+                `Unknown crawler name '${item.crawler}' faced in the product rowid='${req.params.rowid}'`
+            );
+            return res.status(500).send('Server misconfiguraion');
+        }
+
+        let mod = modules[modConf.module];
+        if (!mod) {
+            try {
+                mod = modules[modConf.module] = require('./crawlers/' +
+                    modConf.module);
+            } catch (err) {
+                console.error(
+                    `Failed to initialize module '${modConf.module}'`,
+                    err
+                );
+                return res.status(500).send('Server misconfiguraion');
+            }
+        }
+
+        fetcher = requests[rowid] = mod
+            .fetchDetails(item)
+            .finally((result: any) => {
+                delete requests[rowid];
+                return result;
+            });
     }
 
     let result;
     try {
-        result = await mod.fetchDetails(item);
+        result = await fetcher;
     } catch (err) {
+        if (req.aborted) return;
         console.error(
-            `Failed to fetch details for rowid='${req.params.rowid}' (module='${modConf.module}')`,
+            `Failed to fetch details for rowid='${req.params.rowid}'`,
             err
         );
-        res.status(502).send('Failed to fetch data from the source');
+        return res.status(502).send('Failed to fetch data from the source');
     }
 
+    if (req.aborted) return;
     res.json(result);
 });
 
