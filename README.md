@@ -28,7 +28,4 @@ Crawling of https://www.makitatools.com/, https://www.asus.com/us/ and https://w
 
 # Known issues
 
-
--   Crawlers need more stability against random network errors - currently they have to cancel the work, if (for example) a temporary request timeout occurs. However, this state is recoverable - the job can be completed (and all data corrected) after the next scheduled run.
-
 -   'fetchDetails' is executed in the same process as the main APIs. While this should not be a problem to performance (neither from CPU nor RAM perspective; at least, in the scope of this example and all its potential uses), it may be dangerous in terms of security and stability (especially if the crawlers want to run sites JS to emulate user's behavior). Moving 'fetchDetails' to a separate process should not be a problem, but it's not clear how valuable it would be in terms of evaluating this sample.

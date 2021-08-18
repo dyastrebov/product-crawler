@@ -1,11 +1,11 @@
 import {
+    fetchText,
     fetchJson,
+    fetchHtml,
     FetchError,
     updateProducts,
     Product,
-    fetchHtml,
 } from './base/tools';
-import fetch from 'node-fetch';
 
 const siteUrl = 'https://www.samsung.com';
 
@@ -50,9 +50,9 @@ async function crawl() {
 
     console.log('Converting category URLs into codes...');
     for (const cat of catList) {
-        const res = await fetch(cat.url).then((res) => res.text());
+        const res = await fetchText(cat.url);
 
-        const match = res.match(
+        const match = res?.match(
             /<input name="categoryCode" type="hidden" value="([a-zA-Z0-9]+)"/
         );
         if (match && match[1]) {
@@ -69,7 +69,8 @@ async function crawl() {
         return fetchJson(
             `${siteUrl}/us/product-finder/shop/pf_search/s/?category_code=${
                 args.code
-            }&from=${pageIndex * pageSize}&size=${pageSize}&sort=featured`
+            }&from=${pageIndex * pageSize}&size=${pageSize}&sort=featured`,
+            true
         );
     }
 
@@ -81,6 +82,7 @@ async function crawl() {
         let pageIndex = 0;
         while (true) {
             const res = await fetchPage({ code: category.code }, pageIndex++);
+            if (!res) break;
             const products = res?.products;
             if (typeof products?.forEach !== 'function')
                 throw new FetchError('failed to get products page', res);
@@ -137,7 +139,7 @@ export async function fetchDetails(item: Product) {
 
     if (info.linkUrl) {
         const page = await fetchHtml(siteUrl + info.linkUrl);
-        page.window.document
+        page?.window.document
             .querySelectorAll('.sub-specs__item__name')
             .forEach((nameTag) => {
                 const name = nameTag.textContent?.trim();

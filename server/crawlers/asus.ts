@@ -56,7 +56,8 @@ async function crawl() {
                 args.code1
             }&ProductLevel2Code=${args.code2}&PageSize=20&PageIndex=${
                 pageIndex + 1
-            }&CategoryName=&SeriesName=&SubSeriesName=&Spec=&SubSpec=&Sort=Newsest&siteID=www&sitelang=`
+            }&CategoryName=&SeriesName=&SubSeriesName=&Spec=&SubSpec=&Sort=Newsest&siteID=www&sitelang=`,
+            true
         );
     }
 
@@ -66,7 +67,8 @@ async function crawl() {
         let pageIndex = 0;
         while (true) {
             const res = await fetchPage(category, pageIndex++);
-            const products = res?.Result?.ProductList;
+            if (!res) break;
+            const products = res.Result?.ProductList;
             if (typeof products?.forEach !== 'function')
                 throw new FetchError('failed to get products page', res);
             if (!products.length) break;
@@ -142,7 +144,7 @@ export async function fetchDetails(item: Product) {
 
         if (!info.ProductURL.endsWith('/')) info.ProductURL += '/';
         const page = await fetchHtml(info.ProductURL + conf.pageSuffix);
-        page.window.document.querySelectorAll('h2').forEach((h2) => {
+        page?.window.document.querySelectorAll('h2').forEach((h2) => {
             if (h2.className.indexOf(conf.titleClass) >= 0) {
                 const name = (h2.textContent || '').trim();
                 let text = '';

@@ -14,19 +14,51 @@ export class FetchError extends Error {
         super(message);
         this.response = response;
     }
+
+    toString(): string {
+        return super.toString() + ' ' + JSON.stringify(this.response);
+    }
 }
 
-export async function fetchHtml(url: string, opts?: any) {
-    const res = await fetch(url, opts).then((res) => res.text());
-    return new JSDOM(res);
+function doFetch(
+    url: RequestInfo,
+    resType: 'text' | 'json',
+    noExceptions = false,
+    init?: RequestInit | undefined
+): Promise<any> {
+    let res = fetch(url, init).then((res) => res[resType]());
+    if (noExceptions) {
+        res = res.catch((err) => {
+            console.error(`Failed to fetch '${url}'`, err);
+            return null;
+        });
+    }
+    return res;
+}
+
+export async function fetchText(
+    url: string,
+    noExceptions = false,
+    opts?: RequestInit | undefined
+): Promise<string | null> {
+    return await doFetch(url, 'text', noExceptions, opts);
+}
+
+export async function fetchHtml(
+    url: string,
+    noExceptions = false,
+    opts?: RequestInit | undefined
+): Promise<JSDOM | null> {
+    const res = await doFetch(url, 'text', noExceptions, opts);
+    return res ? new JSDOM(res) : res;
 }
 
 export async function fetchJson(
-    url: RequestInfo,
-    init?: RequestInit | undefined
-): Promise<any> {
-    const res = await fetch(url, init);
-    return await res.json();
+    url: string,
+    noExceptions = false,
+    opts?: RequestInit | undefined
+) {
+    return await doFetch(url, 'json', noExceptions, opts);
 }
 
 export async function fetchImages(urls: Array<string>) {

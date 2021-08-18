@@ -4,7 +4,6 @@
  * APIs for endpoints
  */
 import { Pool } from 'pg';
-import fs from 'fs';
 
 type DB = Pool;
 

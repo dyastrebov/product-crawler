@@ -1,5 +1,4 @@
-import { fetchHtml, updateProducts, Product } from './base/tools';
-import fetch from 'node-fetch';
+import { fetchHtml, fetchText, updateProducts, Product } from './base/tools';
 import { JSDOM } from 'jsdom';
 
 const siteUrl = 'https://www.makitatools.com';
@@ -12,7 +11,7 @@ async function crawl() {
     type Category = { catName: string; subCatName: string; href: string };
 
     const catList: Array<Category> = [];
-    page.window.document
+    page?.window.document
         .querySelectorAll('.sub-menu-slideout')
         .forEach((el) => {
             const catName = el.querySelector(
@@ -36,7 +35,7 @@ async function crawl() {
     async function fetchCat(cat: Category, href: string) {
         console.log(`Reading ${cat.catName} -> ${cat.subCatName} - ${href}...`);
 
-        const wrapper = await fetch(siteUrl + href).then((res) => res.text());
+        const wrapper = (await fetchText(siteUrl + href)) as string;
         const m = wrapper.match(
             /.getInfo\("(\d{1,6})", *"(.*?)", *"(.)", *"(\/.*?)", (\d\d), (true|false)\)/
         );
@@ -70,9 +69,11 @@ async function crawl() {
                         m[2]
                     }&producttypecode=${
                         m[3]
-                    }&filters=&page=${++pageIdx}&perpage=25`
+                    }&filters=&page=${++pageIdx}&perpage=25`,
+                true
             );
             let nAdded = 0;
+            if (!list) break;
             list.window.document
                 .querySelectorAll('.product-tile.js-tool-box.js-tile')
                 .forEach((el) => {
@@ -127,7 +128,7 @@ export async function fetchDetails(item: Product) {
     const page = await fetchHtml(siteUrl + info.href);
 
     const images = new Array<string>();
-    page.window.document
+    page?.window.document
         .querySelectorAll('.image-gallery img')
         .forEach((img) => {
             const url = img.getAttribute('data-dyn-url');
@@ -135,17 +136,19 @@ export async function fetchDetails(item: Product) {
         });
 
     const features = new Array<string>();
-    page.window.document.querySelectorAll('.ul-features > li').forEach((f) => {
+    page?.window.document.querySelectorAll('.ul-features > li').forEach((f) => {
         const text = f.textContent;
         if (text) features.push(text.trim());
     });
 
     const specs: any = {};
-    page.window.document.querySelectorAll('.detail-specs > li').forEach((s) => {
-        const name = s.querySelector('.spec-name')?.textContent;
-        const value = s.querySelector('.spec-value')?.textContent || '';
-        if (name) specs[name.replace(/: *$/, '').trim()] = value.trim();
-    });
+    page?.window.document
+        .querySelectorAll('.detail-specs > li')
+        .forEach((s) => {
+            const name = s.querySelector('.spec-name')?.textContent;
+            const value = s.querySelector('.spec-value')?.textContent || '';
+            if (name) specs[name.replace(/: *$/, '').trim()] = value.trim();
+        });
 
     return {
         images: images,
